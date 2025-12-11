@@ -462,15 +462,18 @@ def pdf_to_text_ocr_advanced(pdf_path, output_txt_path=None, lang='ind', preproc
         file_size = os.path.getsize(pdf_path) / (1024*1024)  # in MB
         print(f"    📄 File size: {file_size:.2f} MB")
         
-        # REMOVED the max_pages limitation
-        print(f"    ⚙️  Memproses semua halaman PDF...")
+        # Limit pages untuk mencegah hang
+        max_pages = 10
+        print(f"    ⚙️  Membatasi proses ke {max_pages} halaman pertama")
         
         try:
-            print(f" == Mengkonversi PDF ke gambar...")
-            # Convert ALL pages without limitation
+            print(f"    🕐 Mengkonversi PDF ke gambar...")
+            # Convert with limited pages
             images = convert_from_path(
                 pdf_path, 
                 dpi=200,  # Reduced DPI untuk kecepatan
+                first_page=1, 
+                last_page=max_pages,
                 thread_count=1  # Single thread untuk stabilitas
             )
             
@@ -492,7 +495,7 @@ def pdf_to_text_ocr_advanced(pdf_path, output_txt_path=None, lang='ind', preproc
     full_text = []
     
     for i, image in enumerate(images, start=1):
-        print(f" === Processing page {i}/{len(images)}")
+        print(f"    🔍 Processing page {i}/{len(images)}")
         
         if preprocess:
             # Simple preprocessing
