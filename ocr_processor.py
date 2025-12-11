@@ -265,8 +265,8 @@ def analyze_with_gemini_advanced(text_content: str, competency_data: List[Dict] 
         4. Jurusan/field study
         5. Usahakan jika ada S1 maka tampilkan S1 terlebih dahulu baru S2 jika ada S2
         
-        Format output yang diharapkan, PERHATIKAN karena harus sesuai, dan bukan bentuk lain: "S1 Teknik Informatika, ITB | S2 Master of Business Administration, ITB"
-        Hanya tampilkan yang memang ada saja, jika tidak ada jangan ditampilkan dan jika ada S1 maka tampilkan terlebih dahulu yang S1 baru S2. Jika S1 tidak ada maka gunakan template seperti ini "S1 Teknik Informatika, ITB" atau pada S2 seperti ini "S2 Master of Business Administration, ITB"
+        PERHATIKAN Format output yang diharapkan karena harus sesuai, dan bukan bentuk lain: "S1 Teknik Informatika, ITB | S2 Master of Business Administration, ITB"
+        Jika ada lebih dari satu pendidikan, maka tampilkan terlebih dahulu yang S1 baru S2, dan baru S3 jika memang ada. Jika S1 tidak ada maka gunakan template seperti ini "S1 Teknik Informatika, ITB" atau pada S2 seperti ini "S2 Master of Business Administration, ITB" sesuai dengan yang ada saja.
         Jika institusi tidak diberikan, berikan Gelar lalu program studi saja.
         Jangan gunakan bintang atau poin-poin, langsung format string seperti contoh.
         
