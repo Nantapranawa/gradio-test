@@ -265,8 +265,9 @@ def analyze_with_gemini_advanced(text_content: str, competency_data: List[Dict] 
         4. Jurusan/field study
         5. Usahakan jika ada S1 maka tampilkan S1 terlebih dahulu baru S2 jika ada S2
         
-        Format output yang diharapkan: "S1 Teknik Informatika, ITB | S2 Master of Business Administration, ITB"
-        Hanya tampilkan yang memang ada saja, jika tidak ada jangan ditampilkan dan jika ada S1 maka tampilkan terlebih dahulu yang S1 baru S2 jika S1 tidak ada maka gunakan template seperti ini "S1 Teknik Informatika, ITB" atau pada S2 seperti ini "S2 Master of Business Administration, ITB"
+        Format output yang diharapkan, PERHATIKAN karena harus sesuai, dan bukan bentuk lain: "S1 Teknik Informatika, ITB | S2 Master of Business Administration, ITB"
+        Hanya tampilkan yang memang ada saja, jika tidak ada jangan ditampilkan dan jika ada S1 maka tampilkan terlebih dahulu yang S1 baru S2. Jika S1 tidak ada maka gunakan template seperti ini "S1 Teknik Informatika, ITB" atau pada S2 seperti ini "S2 Master of Business Administration, ITB"
+        Jika institusi tidak diberikan, berikan Gelar lalu program studi saja.
         Jangan gunakan bintang atau poin-poin, langsung format string seperti contoh.
         
         Teks yang akan dianalisis:
@@ -350,6 +351,7 @@ def analyze_with_gemini_advanced(text_content: str, competency_data: List[Dict] 
         "Profesional berpengalaman 15+ tahun di bidang Human Capital Management dengan track record memimpin transformasi organisasi di perusahaan telekomunikasi dan fintech. Saat ini menjabat sebagai Direktur Commercial di PT Telekomunikasi Selular, sebelumnya sebagai Head of Human Capital Management di PT Finnet Indonesia. Memiliki keahlian kuat dalam strategic planning, talent management, dan organizational development. Sukses mengimplementasikan SAP-Based HCIS dan meningkatkan employee engagement hingga 85%. Pendidikan S2 Master of Business Administration dari ITB dengan spesialisasi Strategic Management."
         
         Jangan ada preambles, langsung summary executive-nya.
+        Jangan gunakan bintang simbol lainnya, langsung format string seperti contoh.
         
         Teks yang akan dianalisis:
         """,
