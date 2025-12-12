@@ -739,7 +739,7 @@ if __name__ == "__main__":
     
     # Launch with authentication
     app.launch(
-        server_name="127.0.0.1",  # Localhost only
+        server_name=os.getenv("USING_IP"),  # Localhost only
         server_port=7860,
         share=False,  # No public sharing
         auth=list(AUTHORIZED_USERS.items()),  # Require authentication
