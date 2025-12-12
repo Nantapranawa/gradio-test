@@ -412,10 +412,6 @@ class CVSummaryProcessor:
 ⬇️ **Download Hasil:**
 - File ZIP sudah berisi semua hasil termasuk presentasi
 
-⚠️ **Catatan Keamanan:**
-- Semua data diproses secara lokal
-- File temporary akan dihapus otomatis
-- Download hasil segera sebelum session berakhir
 """
         return report
     
@@ -480,19 +476,16 @@ def create_interface():
     }
     """
     
-    with gr.Blocks(title="CV Summary Generator - Secure") as app:
+    with gr.Blocks(title="Automatic CV Profiling Generator") as app:
         
         gr.Markdown("""
-        # 🔒 CV Summary Generator (Secure & Private)
+        # 🔒 Automatic CV Profiling Generator
         
         **Pipeline End-to-End:** OCR → AI Analysis → PowerPoint Generation
         
         <div class="security-notice">
-        ⚠️ <b>Keamanan Data:</b>
+        ⚠️ <b>Keamanan:</b>
         <ul>
-        <li>✓ Semua data diproses secara lokal dan terenkripsi</li>
-        <li>✓ Tidak ada data yang dikirim ke server eksternal</li>
-        <li>✓ File temporary otomatis terhapus setelah proses</li>
         <li>✓ Akses terbatas hanya untuk authorized users</li>
         </ul>
         </div>
@@ -669,7 +662,7 @@ def create_interface():
         
         1. **Pilih Sumber Input:**
            - **Upload File/Folder:** Upload file PDF atau ZIP yang berisi CV dan Assessment
-           - **SharePoint:** Masukkan URL SharePoint dan credentials
+           - **SharePoint:** Masukkan URL SharePoint dan credentials (Tahap Production)
         
         2. **Upload Files:**
            - Excel Competency (wajib)

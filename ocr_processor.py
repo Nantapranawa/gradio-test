@@ -266,7 +266,7 @@ def analyze_with_gemini_advanced(text_content: str, competency_data: List[Dict] 
         5. Usahakan jika ada S1 maka tampilkan S1 terlebih dahulu baru S2 jika ada S2
         
         PERHATIKAN Format output yang diharapkan karena harus sesuai, dan bukan bentuk lain: "S1 Teknik Informatika, ITB | S2 Master of Business Administration, ITB"
-        Jika ada lebih dari satu pendidikan, maka tampilkan terlebih dahulu yang S1 baru S2, dan baru S3 jika memang ada sesuai urutan.
+        Jika ada lebih dari satu pendidikan, maka tampilan harus sesuai dengan urutan, dan menampilkan secara urut seperti di contoh. Tampilkan seluruh gelar yang sudah diraih sesuai dengan informasi yang diberikan.
         Jika institusi tidak diberikan, berikan Gelar lalu program studi saja.
         Jangan gunakan bintang atau poin-poin, langsung format string seperti contoh.
         Selalu berikan output sesuai dengan template pada contoh.
