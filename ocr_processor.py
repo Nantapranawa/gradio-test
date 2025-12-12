@@ -296,7 +296,8 @@ def analyze_with_gemini_advanced(text_content: str, competency_data: List[Dict] 
         2017 – 2018
         
         Jangan ada preambles pada awal jawaban jadi langsung pada 4 posisi jabatan terakhirnya, jangan gunakan bintang untuk poin-poinnya, jangan tampilkan reasoning, langsung format seperti contoh dan untuk setiap posisi jabatan pergunakan huruf kapital diawalnya saja misal SO Human Capital serta nama companynya juga huruf awalnya saja untuk huruf PT tetap besar misal PT Telkom Indonesia
-        
+        Jika terdapat jabatan yang sama persis secara BERURUTAN, tidak perlu diulang, gabungkan saja menjadi satu dan kemudian berikan range waktu yang sesuai dengan yang ada.
+        PENTING: Teks total hanya bisa menggunakaan 16 BARIS SAJA. Jangan berikan lebih dari 16 baris. 
         Teks yang akan dianalisis:
         """,
         
@@ -309,7 +310,7 @@ def analyze_with_gemini_advanced(text_content: str, competency_data: List[Dict] 
         - LANGSUNG mulai dengan bullet point pertama
         - HARUS tepat 5 poin
         - Format: • [Dampak bisnis]
-        - Hanya kalimat singkat pada dampak bisnis saja seperti 5-7 kata saja, tanpa tambahan konteks atau penjelasan lainnya jadi to the point saja pada business impactnya
+        - Hanya kalimat singkat pada dampak bisnis saja dan HANYA berupa 5-6 kata saja, tanpa tambahan konteks atau penjelasan lainnya jadi to the point saja pada business impactnya
         
         Format output yang diharapkan:
         • Led a major organizational transformation project
