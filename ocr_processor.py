@@ -266,9 +266,10 @@ def analyze_with_gemini_advanced(text_content: str, competency_data: List[Dict] 
         5. Usahakan jika ada S1 maka tampilkan S1 terlebih dahulu baru S2 jika ada S2
         
         PERHATIKAN Format output yang diharapkan karena harus sesuai, dan bukan bentuk lain: "S1 Teknik Informatika, ITB | S2 Master of Business Administration, ITB"
-        Jika ada lebih dari satu pendidikan, maka tampilkan terlebih dahulu yang S1 baru S2, dan baru S3 jika memang ada. Jika S1 tidak ada maka gunakan template seperti ini "S1 Teknik Informatika, ITB" atau pada S2 seperti ini "S2 Master of Business Administration, ITB" sesuai dengan yang ada saja.
+        Jika ada lebih dari satu pendidikan, maka tampilkan terlebih dahulu yang S1 baru S2, dan baru S3 jika memang ada sesuai urutan.
         Jika institusi tidak diberikan, berikan Gelar lalu program studi saja.
         Jangan gunakan bintang atau poin-poin, langsung format string seperti contoh.
+        Selalu berikan output sesuai dengan template pada contoh.
         
         Teks yang akan dianalisis:
         """,
@@ -352,6 +353,7 @@ def analyze_with_gemini_advanced(text_content: str, competency_data: List[Dict] 
         
         Jangan ada preambles, langsung summary executive-nya.
         Jangan gunakan bintang simbol lainnya, langsung format string seperti contoh.
+        Gunakan font normal dan bukan bold atau italic atau lainnya.
         
         Teks yang akan dianalisis:
         """,
