@@ -206,6 +206,51 @@ class SharePointHandler:
         if self.temp_dir and os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
 
+# ==================== FILE EXTRACTION FUNCTIONS ====================
+def extract_zip_file(zip_path, extract_dir):
+    """Extract ZIP file"""
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_dir)
+        print(f"Extracted ZIP file: {zip_path}")
+        return True
+    except Exception as e:
+        print(f"Error extracting ZIP file {zip_path}: {e}")
+        return False
+
+def extract_rar_file(rar_path, extract_dir):
+    """Extract RAR file"""
+    try:
+        # Try to import rarfile, install if not available
+        try:
+            import rarfile
+        except ImportError:
+            print("Installing rarfile library...")
+            import subprocess
+            import sys
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "rarfile"])
+            import rarfile
+        
+        with rarfile.RarFile(rar_path, 'r') as rar_ref:
+            rar_ref.extractall(extract_dir)
+        print(f"Extracted RAR file: {rar_path}")
+        return True
+    except Exception as e:
+        print(f"Error extracting RAR file {rar_path}: {e}")
+        return False
+
+def extract_archive_file(file_path, extract_dir):
+    """Extract archive file based on extension (ZIP or RAR)"""
+    file_extension = os.path.splitext(file_path)[1].lower()
+    
+    if file_extension == '.zip':
+        return extract_zip_file(file_path, extract_dir)
+    elif file_extension == '.rar':
+        return extract_rar_file(file_path, extract_dir)
+    else:
+        print(f"Unsupported archive format: {file_extension}")
+        return False
+
 # ==================== MAIN PROCESSOR ====================
 class CVSummaryProcessor:
     """Main processor untuk pipeline end-to-end"""
@@ -252,16 +297,14 @@ class CVSummaryProcessor:
                     if not file_path:
                         continue
                         
-                    # Check if it's a ZIP file
-                    if file_path.lower().endswith('.zip'):
-                        # Extract ZIP file
-                        try:
-                            with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                                zip_ref.extractall(upload_temp_dir)
-                            print(f"Extracted ZIP file: {file_path}")
-                        except Exception as e:
-                            print(f"Error extracting ZIP file {file_path}: {e}")
-                            # If extraction fails, copy the ZIP as-is
+                    # Check if it's an archive file (ZIP or RAR)
+                    file_extension = os.path.splitext(file_path)[1].lower()
+                    if file_extension in ['.zip', '.rar']:
+                        # Extract archive file
+                        success = extract_archive_file(file_path, upload_temp_dir)
+                        if not success:
+                            # If extraction fails, copy the file as-is
+                            print(f"Archive extraction failed for {file_path}, copying as-is...")
                             shutil.copy(file_path, upload_temp_dir)
                     else:
                         # Copy PDF files directly
@@ -505,12 +548,12 @@ def create_interface():
                 # Upload File/Folder Input
                 with gr.Group(visible=True) as upload_group:
                     upload_files = gr.File(
-                        label="📁 Upload CV & Assessment Files (PDF atau ZIP)",
+                        label="📁 Upload CV & Assessment Files (PDF, ZIP, atau RAR)",
                         file_count="multiple",
-                        file_types=[".pdf", ".zip"],
+                        file_types=[".pdf", ".zip", ".rar"],
                         type="filepath"
                     )
-                    gr.Markdown("💡 **Info:** Upload file PDF atau ZIP yang berisi CV dan Assessment")
+                    gr.Markdown("💡 **Info:** Upload file PDF, ZIP, atau RAR yang berisi CV dan Assessment")
                 
                 # SharePoint Input
                 with gr.Group(visible=False) as sharepoint_group:
@@ -661,7 +704,7 @@ def create_interface():
         ### 📖 Panduan Penggunaan:
         
         1. **Pilih Sumber Input:**
-           - **Upload File/Folder:** Upload file PDF atau ZIP yang berisi CV dan Assessment
+           - **Upload File/Folder:** Upload file PDF, ZIP, atau RAR yang berisi CV dan Assessment
            - **SharePoint:** Masukkan URL SharePoint dan credentials (Tahap Production)
         
         2. **Upload Files:**
@@ -696,7 +739,7 @@ if __name__ == "__main__":
     
     # Launch with authentication
     app.launch(
-        server_name="0.0.0.0",  # Localhost only
+        server_name="127.0.0.1",  # Localhost only
         server_port=7860,
         share=False,  # No public sharing
         auth=list(AUTHORIZED_USERS.items()),  # Require authentication
