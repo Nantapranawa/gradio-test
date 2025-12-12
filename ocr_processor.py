@@ -499,7 +499,7 @@ def pdf_to_text_ocr_advanced(pdf_path, output_txt_path=None, lang='ind', preproc
     full_text = []
     
     for i, image in enumerate(images, start=1):
-        print(f"    🔍 Processing page {i}/{len(images)}")
+        print(f"=== Processing page {i}/{len(images)}")
         
         if preprocess:
             # Simple preprocessing
