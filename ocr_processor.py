@@ -31,6 +31,33 @@ else:
     # Windows path for local development
     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+# ========== TAMBAHKAN CACHING GLOBAL ==========
+# Dictionary untuk menyimpan hasil OCR agar tidak diproses ulang
+OCR_CACHE = {}
+
+def get_cached_ocr_text(pdf_path: str, use_cache: bool = True) -> Tuple[Optional[str], bool]:
+    """
+    Mendapatkan teks dari cache atau melakukan OCR baru.
+    Returns: (text, from_cache)
+    """
+    if use_cache and pdf_path in OCR_CACHE:
+        return OCR_CACHE[pdf_path], True
+    
+    # Jika tidak ada di cache, lakukan OCR
+    text = pdf_to_text_ocr_advanced(pdf_path, lang='ind')
+    
+    # Simpan ke cache
+    if use_cache and text:
+        OCR_CACHE[pdf_path] = text
+    
+    return text, False
+
+def clear_ocr_cache():
+    """Membersihkan cache OCR"""
+    global OCR_CACHE
+    OCR_CACHE.clear()
+    print("✓ OCR cache cleared")
+
 def verify_ocr_installation():
     """Verify that OCR engine is properly installed"""
     try:
@@ -348,6 +375,7 @@ def analyze_with_gemini_advanced(text_content: str, competency_data: List[Dict] 
         2. Highlight: Posisi terakhir, pengalaman tahun, keahlian utama, pencapaian signifikan
         3. Tone: Profesional dan ringkas
         4. Fokus pada value dan kontribusi kandidat
+        5. Hasil summary berupa maksimal 4 baris dan tidak lebih.
         
         Contoh format:
         "Profesional berpengalaman 15+ tahun di bidang Human Capital Management dengan track record memimpin transformasi organisasi di perusahaan telekomunikasi dan fintech. Saat ini menjabat sebagai Direktur Commercial di PT Telekomunikasi Selular, sebelumnya sebagai Head of Human Capital Management di PT Finnet Indonesia. Memiliki keahlian kuat dalam strategic planning, talent management, dan organizational development. Sukses mengimplementasikan SAP-Based HCIS dan meningkatkan employee engagement hingga 85%. Pendidikan S2 Master of Business Administration dari ITB dengan spesialisasi Strategic Management."
@@ -645,7 +673,15 @@ def group_and_match_documents(pdf_files: List[str]) -> Dict[str, Dict]:
         for doc in docs:
             if doc['type'] == 'ASSESSMENT':
                 print(f"  Memproses Assessment: {doc['filename']}")
-                text = pdf_to_text_ocr_advanced(doc['path'], lang='ind')
+                
+                # MODIFIKASI: Gunakan caching untuk menghindari OCR duplikat
+                text, from_cache = get_cached_ocr_text(doc['path'])
+                
+                if from_cache:
+                    print(f"    ✓ Menggunakan hasil OCR dari cache")
+                else:
+                    print(f"    ✓ Melakukan OCR baru dan menyimpan ke cache")
+                
                 nik, extracted_name = extract_nik_and_name_from_text(text)
                 
                 if nik:
@@ -654,7 +690,8 @@ def group_and_match_documents(pdf_files: List[str]) -> Dict[str, Dict]:
                         'path': doc['path'],
                         'filename': doc['filename'],
                         'extracted_name': extracted_name,
-                        'name_from_filename': name
+                        'name_from_filename': name,
+                        'ocr_text': text  # Simpan teks untuk digunakan nanti
                     }
                     
                     # Tambahkan ke unmatched untuk matching nanti
@@ -667,6 +704,7 @@ def group_and_match_documents(pdf_files: List[str]) -> Dict[str, Dict]:
                     print(f"    ✗ NIK tidak ditemukan")
     
     print(f"\nTotal Assessment dengan NIK: {len(assessments_with_nik)}")
+    print(f"Ukuran cache OCR: {len(OCR_CACHE)} file")
     
     # Sekarang coba match CV dengan Assessment
     print(f"\nMencocokkan CV dengan Assessment...")
@@ -735,6 +773,7 @@ def group_and_match_documents(pdf_files: List[str]) -> Dict[str, Dict]:
                 'CV_filename': best_match['filename'],
                 'Assessment': assessment['assessment_data']['path'],
                 'Assessment_filename': assessment['assessment_data']['filename'],
+                'Assessment_ocr_text': assessment['assessment_data'].get('ocr_text', ''),  # Simpan teks OCR
                 'Match_Score': best_score
             }
             
@@ -753,6 +792,7 @@ def group_and_match_documents(pdf_files: List[str]) -> Dict[str, Dict]:
             'CV_filename': cv['filename'],
             'Assessment': '',
             'Assessment_filename': '',
+            'Assessment_ocr_text': '',
             'Match_Score': 0
         }
         print(f"\n⚠ CV tanpa match: {cv['filename']}")
@@ -761,6 +801,7 @@ def group_and_match_documents(pdf_files: List[str]) -> Dict[str, Dict]:
     print("HASIL MATCHING:")
     print(f"Total pasangan CV-Assessment: {len([v for v in matched_documents.values() if v['Assessment']])}")
     print(f"Total CV tanpa Assessment: {len([v for v in matched_documents.values() if not v['Assessment']])}")
+    print(f"Ukuran cache OCR akhir: {len(OCR_CACHE)} file")
     print("="*60)
     
     return matched_documents
@@ -790,13 +831,24 @@ def process_matched_documents(matched_docs: Dict, competency_data: Dict, output_
         if person_data['CV']:
             print(f"  Memproses CV: {person_data['CV_filename']}")
             cv_txt_path = os.path.join(output_folder, f"hasil_cv_{nama.replace(' ', '_')}.txt")
-            cv_text = pdf_to_text_ocr_advanced(
-                pdf_path=person_data['CV'],
-                output_txt_path=cv_txt_path,
-                lang='ind',
-                preprocess=True,
-                dpi=400
-            )
+            
+            # MODIFIKASI: Gunakan caching untuk CV juga
+            cv_text, from_cache = get_cached_ocr_text(person_data['CV'])
+            
+            if from_cache:
+                print(f"    ✓ Menggunakan hasil OCR CV dari cache")
+            else:
+                print(f"    ✓ Melakukan OCR CV baru")
+            
+            # Simpan ke file jika diminta
+            if cv_txt_path:
+                try:
+                    os.makedirs(os.path.dirname(cv_txt_path), exist_ok=True)
+                    with open(cv_txt_path, 'w', encoding='utf-8') as f:
+                        f.write(cv_text)
+                except Exception as e:
+                    print(f"    ❌ Error saving CV text: {e}")
+            
             all_text += f"\n\n=== CV ===\n{cv_text}"
             source_files.append({
                 'type': 'CV',
@@ -808,13 +860,28 @@ def process_matched_documents(matched_docs: Dict, competency_data: Dict, output_
         if person_data['Assessment']:
             print(f"  Memproses Assessment: {person_data['Assessment_filename']}")
             ass_txt_path = os.path.join(output_folder, f"hasil_assessment_{nama.replace(' ', '_')}.txt")
-            assessment_text = pdf_to_text_ocr_advanced(
-                pdf_path=person_data['Assessment'],
-                output_txt_path=ass_txt_path,
-                lang='ind',
-                preprocess=True,
-                dpi=400
-            )
+            
+            # MODIFIKASI: Gunakan teks OCR yang sudah ada dari cache/matching phase
+            if 'Assessment_ocr_text' in person_data and person_data['Assessment_ocr_text']:
+                print(f"    ✓ Menggunakan hasil OCR Assessment dari fase matching")
+                assessment_text = person_data['Assessment_ocr_text']
+            else:
+                # Fallback: coba dari cache atau lakukan OCR baru
+                assessment_text, from_cache = get_cached_ocr_text(person_data['Assessment'])
+                if from_cache:
+                    print(f"    ✓ Menggunakan hasil OCR Assessment dari cache")
+                else:
+                    print(f"    ✓ Melakukan OCR Assessment baru")
+            
+            # Simpan ke file jika diminta
+            if ass_txt_path:
+                try:
+                    os.makedirs(os.path.dirname(ass_txt_path), exist_ok=True)
+                    with open(ass_txt_path, 'w', encoding='utf-8') as f:
+                        f.write(assessment_text)
+                except Exception as e:
+                    print(f"    ❌ Error saving Assessment text: {e}")
+            
             all_text += f"\n\n=== ASSESSMENT ===\n{assessment_text}"
             source_files.append({
                 'type': 'ASSESSMENT',
@@ -875,6 +942,9 @@ def process_all_documents_with_competency(input_folder: str, excel_path: str,
     
     # Buat output folder jika belum ada
     os.makedirs(output_folder, exist_ok=True)
+    
+    # Bersihkan cache sebelum memulai
+    clear_ocr_cache()
     
     # 1. Baca data competency dari Excel
     print("="*60)
@@ -965,6 +1035,9 @@ def process_all_documents_with_competency(input_folder: str, excel_path: str,
         print(f"✓ Total data: {len(df)} orang")
         print(f"✓ Kolom: {', '.join(df.columns.tolist())}")
         
+        # Statistik caching
+        print(f"✓ Cache OCR digunakan: {len(OCR_CACHE)} file")
+        
         # Statistik
         if 'nik' in df.columns:
             with_nik = df[~df['nik'].astype(str).str.contains('NO_NIK', na=False)].shape[0]
@@ -1007,7 +1080,8 @@ def create_detailed_report(df: pd.DataFrame, output_folder: str):
         
         f.write(f"Tanggal: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Total data: {len(df)} orang\n")
-        f.write(f"Model AI: {GEMINI_MODEL}\n\n")
+        f.write(f"Model AI: {GEMINI_MODEL}\n")
+        f.write(f"Cache OCR: {len(OCR_CACHE)} file\n\n")
         
         # Statistik
         with_nik = df[df['nik'].str.contains('NO_NIK', na=False) == False].shape[0]
@@ -1147,6 +1221,7 @@ def main():
     print("PROSES SELESAI!")
     print("="*80)
     print(f"⏱ Waktu proses: {duration/60:.2f} menit")
+    print(f"📊 Cache OCR: {len(OCR_CACHE)} file diproses sekali saja")
     
     # Tampilkan path hasil
     print(f"\n📁 Hasil disimpan di:")
